@@ -29,12 +29,12 @@ def _make_url(site: AdminSite, model: type[Model], page: str) -> str:
     """Generates a URL for the given admin site, model, and page."""
     app_label = model._meta.app_label  # noqa: SLF001
     model_name = model._meta.model_name  # noqa: SLF001
-    return reverse(f'{site.name}:{app_label}_{model_name}_{page}')  # noqa: WPS221
+    return reverse(f"{site.name}:{app_label}_{model_name}_{page}")  # noqa: WPS221
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    ('site', 'model', 'model_admin'),
+    ("site", "model", "model_admin"),
     _MODEL_ADMIN_PARAMS,
 )
 def test_admin_changelist(
@@ -44,15 +44,15 @@ def test_admin_changelist(
     model_admin: type[ModelAdmin[Model]],
 ) -> None:
     """Ensures that admin changelist pages are accessible."""
-    url = _make_url(site, model, 'changelist')
-    response = admin_client.get(url, {'q': 'something'})
+    url = _make_url(site, model, "changelist")
+    response = admin_client.get(url, {"q": "something"})
 
     assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    ('site', 'model', 'model_admin'),
+    ("site", "model", "model_admin"),
     _MODEL_ADMIN_PARAMS,
 )
 def test_admin_add(
@@ -62,7 +62,7 @@ def test_admin_add(
     model_admin: type[ModelAdmin[Model]],
 ) -> None:
     """Ensures that admin add pages are accessible or restricted."""
-    url = _make_url(site, model, 'add')
+    url = _make_url(site, model, "add")
     response = admin_client.get(url)
     expected_status = (
         HTTPStatus.FORBIDDEN

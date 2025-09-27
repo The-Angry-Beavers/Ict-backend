@@ -26,8 +26,8 @@ class BlogPost(models.Model):
 
     class Meta:
         # You can probably use `gettext` for this:
-        verbose_name = 'BlogPost'  # type: ignore[mutable-override]
-        verbose_name_plural = 'BlogPosts'  # type: ignore[mutable-override]
+        verbose_name = "BlogPost"  # type: ignore[mutable-override]
+        verbose_name_plural = "BlogPosts"  # type: ignore[mutable-override]
 
     @override
     def __str__(self) -> str:

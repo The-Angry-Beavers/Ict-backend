@@ -6,7 +6,7 @@ from django.urls import reverse
 
 def test_main_page(client: Client, main_heading: str) -> None:
     """Ensures that main page works."""
-    response = client.get(reverse('index'))
+    response = client.get(reverse("index"))
 
     assert response.status_code == HTTPStatus.OK
     assert main_heading in str(response.content)
@@ -14,7 +14,7 @@ def test_main_page(client: Client, main_heading: str) -> None:
 
 def test_hello_page(client: Client, main_heading: str) -> None:
     """Ensures that hello page works."""
-    response = client.get(reverse('main:hello'))
+    response = client.get(reverse("main:hello"))
 
     assert response.status_code == HTTPStatus.OK
     assert main_heading in str(response.content)

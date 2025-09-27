@@ -9,10 +9,10 @@ _LOGGING_FORMAT_RE: Final = re.compile(
 )
 
 
-@pytest.fixture(name='logger')
+@pytest.fixture(name="logger")
 def logger_fixture() -> logging.Logger:
     """Returns the current logger instance."""
-    return logging.getLogger('django')
+    return logging.getLogger("django")
 
 
 @pytest.fixture(autouse=True)
@@ -29,7 +29,7 @@ def test_logging_format(
     logger: logging.Logger,
 ) -> None:
     """Ensures logging is done correctly."""
-    message = 'Test message'
+    message = "Test message"
 
     logger.error(message)
 

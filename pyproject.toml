@@ -96,7 +96,7 @@ target-version = "py312"
 line-length = 80
 
 [tool.ruff.format]
-quote-style = "single"
+quote-style = "double"
 docstring-code-format = true
 
 [tool.ruff.lint]
@@ -159,11 +159,13 @@ ignore = [
   "PLR2004", # do not report magic numbers
   "PLR6301", # do not require classmethod / staticmethod when self not used
   "TRY003",  # long exception messages from `tryceratops`
+  "D101",
+  "RUF001",
 ]
 external = ["WPS"]
 
 # Plugin configs:
-flake8-quotes.inline-quotes = "single"
+flake8-quotes.inline-quotes = "double"
 mccabe.max-complexity = 6
 pydocstyle.convention = "google"
 
