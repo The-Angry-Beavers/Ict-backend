@@ -130,11 +130,6 @@ def _get_client(situation: SituationModel, generation: Generation) -> ClientGene
     if is_have_real_estate is None:
         is_have_real_estate = bool(_get_index_from_random_val(generation.is_married, 2))
 
-    message = situation.male_text
-
-    if selected_gender == "female":
-        message = situation.female_text
-
     return ClientGeneration(
         client_gender=selected_gender,
         client_age=selected_age_group,
@@ -273,7 +268,7 @@ def _generate_situation(
         **dataclasses.asdict(generated_client),
         **dataclasses.asdict(generated_hint),
     )
-    generation_answers_instance = GenerationAnswerModel.objects.bulk_create(
+    GenerationAnswerModel.objects.bulk_create(
         itertools.chain(
             [
                 GenerationAnswerModel(
