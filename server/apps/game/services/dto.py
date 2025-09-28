@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Self
 from uuid import UUID
 
-from pydantic import AnyHttpUrl, BaseModel, Field
+from pydantic import AnyHttpUrl, BaseModel, Field, computed_field
 
 if TYPE_CHECKING:
     from server.apps.game.models import GenerationModel
@@ -17,6 +17,10 @@ class Client(BaseModel):
     city: str
     message: str
     sprite: AnyHttpUrl
+
+    @classmethod
+    def from_generation(cls, generation_instance: "GenerationModel") -> Self:
+        raise NotImplementedError
 
 
 class Product(BaseModel):
@@ -73,13 +77,16 @@ class AcknowledgeDayFinish(BaseModel):
 class Review(BaseModel):
     client: Client
     review: str
-    is_success: bool
     rating: int
 
 
 class AcknowledgeDayFinishResponse(BaseModel):
-    total_rating: int
     reviews: list[Review]
+
+    @computed_field
+    @property
+    def total_rating(self) -> int:
+        return sum([rev.rating for rev in self.reviews])
 
 
 class SituationHint(BaseModel):

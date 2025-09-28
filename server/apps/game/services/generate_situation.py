@@ -1,10 +1,9 @@
 import dataclasses
 import itertools
 import random
-from typing import Final, Self, TypeVar, TYPE_CHECKING
+from typing import Final, Self, TypeVar
 
-from django.db.models import Prefetch, QuerySet
-from ruamel.yaml.compat import check_anchorname_char
+from django.db.models import Prefetch, QuerySet, Q, Model
 
 from server.apps.game.models import (
     AgeGroupModel,
@@ -17,16 +16,15 @@ from server.apps.game.models import (
     SituationModel,
     SpriteModel,
     GenerationAnswerModel,
+    ReviewModel,
 )
 from server.apps.game.services.dto import (
     GenerateSituationParams,
     AcknowledgeDayFinish,
     AcknowledgeDayFinishResponse,
     Review,
+    Client,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 @dataclasses.dataclass
@@ -45,6 +43,7 @@ class Generation:
     city: float
     sprite: float
     hint: float
+    review: float
 
     correct_answers_num: int
     answers: list[float]
@@ -52,6 +51,7 @@ class Generation:
     @classmethod
     def generate(cls, random_instance: random.Random) -> Self:
         return cls(
+            random_instance.random(),
             random_instance.random(),
             random_instance.random(),
             random_instance.random(),
@@ -84,7 +84,7 @@ def _get_index_from_random_val(val: float, num_features: int) -> int:
     return int(val * num_features)
 
 
-ModelT = TypeVar("ModelT", bound="Model")
+ModelT = TypeVar("ModelT", bound=Model)
 
 
 def get_random_value_from_qs(feature_qs: QuerySet[ModelT], val: float) -> ModelT:
@@ -328,11 +328,64 @@ def get_hint(generation_params: GenerateSituationParams) -> HintModel:
     return generation_instance.hint
 
 
+TOTAL_POINTS: Final[int] = 10
+INCORRECT_ANSWER_FINE: Final[int] = 3
+
+
 def check_answers(
     generation_instance: GenerationModel,
     chosen_product_ids: list[int],
 ) -> Review:
-    pass
+    # Реализовывается не методами, так как создание нового кверисета ведет
+    # к еще одному запросу к бд, что нам не особо хочется делать
+    correct_generated_answers = list(
+        filter(
+            lambda ans: ans.is_correct,
+            generation_instance.answers.all(),
+        )
+    )
+
+    points_per_answer = TOTAL_POINTS // len(correct_generated_answers)
+    correct_product_ids = set([product.id for product in correct_generated_answers])
+    answered_product_ids = set(chosen_product_ids)
+
+    correct_answers = correct_product_ids & answered_product_ids
+    incorrect_answers = answered_product_ids - correct_product_ids
+    lost_correct_answers = correct_product_ids - answered_product_ids
+
+    points_for_correct_answers = len(correct_answers) * points_per_answer
+    points_for_incorrect_answers = len(incorrect_answers) * INCORRECT_ANSWER_FINE
+    total_points = abs(points_for_correct_answers - points_for_incorrect_answers)
+
+    q_object = Q()
+
+    # нет потерянных ответов и неправильных -> идеальный ответ
+    if len(incorrect_answers) == 0 and len(lost_correct_answers):
+        q_object = Q(product__isnull=True)
+
+    #  Есть какой-то продукт, который не нужен
+    if len(incorrect_answers):
+        q_object |= Q(is_product_in_answer=True)
+
+    # Есть какой-то потерянный правильный ответ
+    if len(lost_correct_answers):
+        q_object |= Q(is_product_in_answer=False)
+
+    review_qs = ReviewModel.objects.filter(q_object)
+    random_instance = _get_random_instance(
+        GenerateSituationParams(
+            seed=generation_instance.seed,
+            num_iterations=generation_instance.iteration,
+        )
+    )
+    generation = Generation.generate(random_instance)
+    review_instance = get_random_value_from_qs(review_qs, generation.review)
+
+    return Review(
+        client=Client.from_generation(generation_instance),
+        review=review_instance.text,
+        rating=total_points,
+    )
 
 
 def acknowledge_day_finish(data: AcknowledgeDayFinish) -> AcknowledgeDayFinishResponse:

@@ -49,11 +49,13 @@ class CityModel(FeatureParamModel):
 
 @final
 class ReviewModel(models.Model):
-    product = models.ForeignKey(
-        to=ProductModel,
-        on_delete=models.PROTECT,
+    product = models.ForeignKey(to=ProductModel, on_delete=models.PROTECT, null=True)
+    is_product_in_answer = models.BooleanField(
+        choices=[
+            (True, "Есть"),
+            (False, "Нет"),
+        ]
     )
-    is_positive = models.BooleanField(default=False)
     text = models.TextField()
 
 
