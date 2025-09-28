@@ -36,3 +36,6 @@ services:
       - web
     profiles:
       - ngrok
+    networks:
+      - web-net
+      - postgres-net
