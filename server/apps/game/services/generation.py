@@ -193,6 +193,7 @@ def _get_answers(
         id__in=[_.id for _ in correct_product_list]
     )
 
+    # FIXME: Перегенерировать повторяющиеся элементы
     true_answers = [
         correct_product_list[
             _get_index_from_random_val(
