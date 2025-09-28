@@ -13,7 +13,7 @@ services:
   web:
     ports:
       # We only bind ports directly in development:
-      - "8000:8000"
+      - "8080:8000"
     volumes:
       # We only mount source code in development:
       - .:/code
