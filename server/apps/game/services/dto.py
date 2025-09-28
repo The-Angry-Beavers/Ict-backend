@@ -4,50 +4,50 @@ from uuid import UUID
 from pydantic import AnyHttpUrl, BaseModel, Field
 
 
-class GenderEnum(enum.StrEnum):
-    MALE = enum.auto()
-    FEMALE = enum.auto()
+# class GenderEnum(enum.StrEnum):
+#     MALE = enum.auto()
+#     FEMALE = enum.auto()
+#
+#
+# class JobSphereEnum(enum.StrEnum):
+#     IT = enum.auto()
+#     FINANCES = enum.auto()
+#     AGROCULTURE = enum.auto()
+#     CONSTRUCTION = enum.auto()
+#     EDUCATION = enum.auto()
+#     HEALTHCARE = enum.auto()
+#
+#
+# class CityEnum(enum.StrEnum):
+#     MOSCOW = "Москва"
+#     NIZHNY_NOVGOROD = "Нижний Новгород"
+#     SAINT_PETERSBURG = "Санкт-Петербург"
+#     VOLOGDA = "Вологда"
+#     OBNINSK = "Обнинск"
+#     KALUGA = "Калуга"
+#     SOCHI = "Сочи"
+#     KAZAN = "Казань"
+#     EKATERINBURG = "Екатеринбург"
+#     ORENBURG = "Оренгбург"
+#     SAMARA = "Самара"
+#     KHABAROVSK = "Хабаровск"
+#     YUZHNO_SAKHALINSK = "Южно-Сахалинск"
 
 
-class JobSphereEnum(enum.StrEnum):
-    IT = enum.auto()
-    FINANCES = enum.auto()
-    AGROCULTURE = enum.auto()
-    CONSTRUCTION = enum.auto()
-    EDUCATION = enum.auto()
-    HEALTHCARE = enum.auto()
-
-
-class CityEnum(enum.StrEnum):
-    MOSCOW = "Москва"
-    NIZHNY_NOVGOROD = "Нижний Новгород"
-    SAINT_PETERSBURG = "Санкт-Петербург"
-    VOLOGDA = "Вологда"
-    OBNINSK = "Обнинск"
-    KALUGA = "Калуга"
-    SOCHI = "Сочи"
-    KAZAN = "Казань"
-    EKATERINBURG = "Екатеринбург"
-    ORENBURG = "Оренгбург"
-    SAMARA = "Самара"
-    KHABAROVSK = "Хабаровск"
-    YUZHNO_SAKHALINSK = "Южно-Сахалинск"
-
-
-class AgeEnum(enum.StrEnum):
-    YOUNG = enum.auto()
-    AVERAGE = enum.auto()
-    RETIRED = enum.auto()
-
+# class AgeEnum(enum.StrEnum):
+#     YOUNG = enum.auto()
+#     AVERAGE = enum.auto()
+#     RETIRED = enum.auto()
+#
 
 class Client(BaseModel):
-    gender: GenderEnum
-    age: AgeEnum
-    job_sphere: JobSphereEnum
+    gender: str
+    age: str
+    job_sphere: str
     is_married: bool
     is_have_child: bool
     is_have_real_estate: bool
-    city: CityEnum
+    city: str
     message: str
     sprite: AnyHttpUrl
 
@@ -68,8 +68,6 @@ class GenerateSituationParams(BaseModel):
 class SituationAnswer(BaseModel):
     product: Product
     is_correct: bool
-    success_message: str
-    fail_message: str
 
 
 class Situation(BaseModel):

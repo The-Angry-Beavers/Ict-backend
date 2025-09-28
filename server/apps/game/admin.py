@@ -6,7 +6,6 @@ from server.apps.game.models import (
     HintModel,
     JobSphereModel,
     ProductModel,
-    ProductRecommendationModel,
     ReviewModel,
     SituationModel,
     SpriteModel,
@@ -53,6 +52,6 @@ class SituationModelAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(ProductRecommendationModel)
-class ProductRecommendationModelAdmin(admin.ModelAdmin):
-    pass
+# @admin.register(ProductRecommendationModel)
+# class ProductRecommendationModelAdmin(admin.ModelAdmin):
+#     pass

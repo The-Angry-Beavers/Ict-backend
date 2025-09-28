@@ -108,10 +108,10 @@ def _get_client(situation: SituationModel, generation: Generation) -> Client:
         ),
         generation.sprite,
     )
-    is_maried = bool(_get_index_from_random_val(generation.is_married, 2))
+    is_married = bool(_get_index_from_random_val(generation.is_married, 2))
     is_have_child = bool(_get_index_from_random_val(generation.is_married, 2))
     is_have_real_estate = situation.real_estate_condition
-    if situation.real_estate_condition is None:
+    if is_have_real_estate is None:
         is_have_real_estate = bool(_get_index_from_random_val(generation.is_married, 2))
 
     message = situation.male_text
@@ -123,7 +123,7 @@ def _get_client(situation: SituationModel, generation: Generation) -> Client:
         gender=selected_gender,
         age=selected_age_group.name,
         job_sphere=selected_job.name,
-        is_maried=is_maried,
+        is_married=is_married,
         is_have_child=is_have_child,
         is_have_real_estate=is_have_real_estate,
         city=selected_city.name,
@@ -157,12 +157,21 @@ def _is_client_satisfy_condition(
 
     return all(conditions)
 
+def _wrap_answers(
+    products: list[ProductModel], is_correct: bool
+) -> list[SituationAnswer]:
+    return [
+        SituationAnswer.model_validate(
+            {"product": product, "is_correct": is_correct}
+        )
+        for product in products
+    ]
 
 def _get_answers(
     situation: SituationModel,
     generation: Generation,
     generated_client: Client,
-) -> list[ProductModel]:
+) -> list[SituationAnswer]:
     correct_products_set = set(situation.common_products.all())
 
     for cond in situation.conditions.all():
@@ -189,7 +198,7 @@ def _get_answers(
         for val in generation.answers[generation.correct_answers_num :]
     ]
 
-    return true_answers + false_answers
+    return _wrap_answers(true_answers, True) + _wrap_answers(false_answers, False)
 
 
 def generate_situation(
