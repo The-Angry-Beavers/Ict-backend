@@ -15,11 +15,16 @@ from django.contrib.admindocs import urls as admindocs_urls
 from django.urls import include, path
 from django.views.generic import TemplateView
 from health_check import urls as health_urls
+from ninja import NinjaAPI
 
 from server.apps.main import urls as main_urls
 from server.apps.main.views import index
+from server.apps.game.views import router as game_router
 
 admin.autodiscover()
+
+ninja_api = NinjaAPI()
+ninja_api.add_router("game", game_router)
 
 urlpatterns = [
     # Apps:
@@ -46,6 +51,8 @@ urlpatterns = [
     ),
     # It is a good practice to have explicit index view:
     path("", index, name="index"),
+    # django-ninja views
+    path("api/", ninja_api.urls)
 ]
 
 if settings.DEBUG:  # pragma: no cover

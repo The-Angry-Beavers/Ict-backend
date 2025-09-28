@@ -32,6 +32,7 @@ gunicorn = "^23.0"
 python-decouple = "^3.8"
 structlog = "^25.4"
 wheel = "^0.45"
+django-ninja = "^1.4.3"
 
 
 [tool.poetry.group.dev.dependencies]
