@@ -133,9 +133,29 @@ def _get_client(situation: SituationModel, generation: Generation) -> Client:
 
 
 def _is_client_satisfy_condition(
-    client: Any, cond: ProductRecommendationConditionModel
+    client: Client,
+    cond: ProductRecommendationConditionModel,
 ) -> bool:
-    pass
+
+    conditions = []
+
+    # TODO: Подумать упаковать эти условия как-то более атомарно
+    if cond.children_condition is not None:
+        conditions.append(client.is_have_child == cond.children_condition)
+
+    if cond.real_estate_condition is not None:
+        conditions.append(client.is_have_real_estate == cond.real_estate_condition)
+
+    if cond.age_group_condition is not None:
+        conditions.append(client.age == cond.age_group_condition.name)
+
+    if cond.job_sphere_condition is not None:
+        conditions.append(client.job_sphere == cond.job_sphere_condition.name)
+
+    if cond.city_condition is not None:
+        conditions.append(client.city == cond.city_condition.name)
+
+    return all(conditions)
 
 
 def _get_answers(
@@ -193,7 +213,11 @@ def generate_situation(
     ).get(pk=situation_id)
 
     generated_client = _get_client(situation, generation)
-    generated_answers = _get_answers(situation, generation)
+    generated_answers = _get_answers(
+        situation,
+        generation,
+        generated_client,
+    )
 
     return Situation(
         generation_params=generation_params,
