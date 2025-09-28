@@ -2,10 +2,12 @@ from typing import Final, final
 
 from django.db import models
 
+
 class FeatureParamModel(models.Model):
 
     class Meta:
         abstract = True
+
 
 @final
 class GenderEnum(models.TextChoices):
@@ -104,17 +106,44 @@ class ProductRecommendationConditionModel(models.Model):
         choices=BOOL_CONDITION_CHOICES,
     )
     age_group_condition = models.ForeignKey(
-        to=AgeGroupModel,
-        on_delete=models.CASCADE,
-        null=True
+        to=AgeGroupModel, on_delete=models.CASCADE, null=True
     )
     job_sphere_condition = models.ForeignKey(
-        to=JobSphereModel,
-        on_delete=models.CASCADE,
-        null=True
+        to=JobSphereModel, on_delete=models.CASCADE, null=True
     )
     city_condition = models.ForeignKey(
-        to=CityModel,
-        on_delete=models.CASCADE,
-        null=True
+        to=CityModel, on_delete=models.CASCADE, null=True
     )
+
+
+class GenerationModel(models.Model):
+    seed = models.UUIDField()
+    iteration = models.PositiveSmallIntegerField()
+
+    situation = models.ForeignKey(to=SituationModel, on_delete=models.PROTECT)
+
+    client_gender = models.CharField(max_length=8, choices=GenderEnum.choices)
+    client_age = models.ForeignKey(to=AgeGroupModel, on_delete=models.PROTECT)
+    client_job = models.ForeignKey(to=JobSphereModel, on_delete=models.PROTECT)
+    client_is_married = models.BooleanField()
+    client_is_have_child = models.BooleanField()
+    client_is_have_real_estate = models.BooleanField()
+    client_city = models.ForeignKey(to=CityModel, on_delete=models.PROTECT)
+    client_sprite = models.ForeignKey(to=SpriteModel, on_delete=models.PROTECT)
+
+    hint = models.ForeignKey(to=HintModel, on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = ("seed", "iteration")
+
+
+# Нужна для того чтобы при изменении условий, генерация не изменялась.
+# Более элегантного решения я не придумал...
+class GenerationAnswerModel(models.Model):
+    generation = models.ForeignKey(
+        GenerationModel,
+        on_delete=models.CASCADE,
+        related_name="answers",
+    )
+    product = models.ForeignKey(to=ProductModel, on_delete=models.PROTECT)
+    is_correct = models.BooleanField()

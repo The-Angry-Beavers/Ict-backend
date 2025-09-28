@@ -1,26 +1,26 @@
-from typing import Self, Final, Sequence, TypeVar, Any
+import dataclasses
+import random
+from typing import Final, Self, TypeVar, TYPE_CHECKING
 
 from django.db.models import Prefetch, QuerySet
 
-from server.apps.game.admin import SpriteModelAdmin
 from server.apps.game.models import (
-    SituationModel,
-    ProductRecommendationConditionModel,
     AgeGroupModel,
-    FeatureParamModel,
     CityModel,
+    GenerationModel,
+    HintModel,
     JobSphereModel,
-    SpriteModel,
     ProductModel,
+    ProductRecommendationConditionModel,
+    SituationModel,
+    SpriteModel,
 )
 from server.apps.game.services.dto import (
-    Situation,
     GenerateSituationParams,
-    Client,
-    SituationAnswer,
 )
-import random
-import dataclasses
+
+if TYPE_CHECKING:
+    pass
 
 
 @dataclasses.dataclass
@@ -38,6 +38,7 @@ class Generation:
     is_have_real_estate: float
     city: float
     sprite: float
+    hint: float
 
     correct_answers_num: int
     answers: list[float]
@@ -45,6 +46,7 @@ class Generation:
     @classmethod
     def generate(cls, random_instance: random.Random) -> Self:
         return cls(
+            random_instance.random(),
             random_instance.random(),
             random_instance.random(),
             random_instance.random(),
@@ -76,12 +78,10 @@ def _get_index_from_random_val(val: float, num_features: int) -> int:
     return int(val * num_features)
 
 
-FeatureT = TypeVar("FeatureT", bound=FeatureParamModel)
+ModelT = TypeVar("ModelT", bound="Model")
 
 
-def get_value_from_feature_params(
-    feature_qs: QuerySet[FeatureT], val: float
-) -> FeatureT:
+def get_random_value_from_qs(feature_qs: QuerySet[ModelT], val: float) -> ModelT:
     feature_count = feature_qs.count()
     index = _get_index_from_random_val(val, feature_count)
     return feature_qs[index]
@@ -90,18 +90,28 @@ def get_value_from_feature_params(
 GENDERS: Final[tuple[str, ...]] = ("male", "female")
 
 
-def _get_client(situation: SituationModel, generation: Generation) -> Client:
+@dataclasses.dataclass
+class ClientGeneration:
+    client_gender: str
+    client_age: AgeGroupModel
+    client_job: JobSphereModel
+    client_is_married: bool
+    client_is_have_child: bool
+    client_is_have_real_estate: bool
+    client_city: CityModel
+    client_sprite: SpriteModel
+
+
+def _get_client(situation: SituationModel, generation: Generation) -> ClientGeneration:
     selected_gender = GENDERS[_get_index_from_random_val(generation.gender, 2)]
-    selected_age_group = get_value_from_feature_params(
+    selected_age_group = get_random_value_from_qs(
         AgeGroupModel.objects.all(), generation.age
     )
-    selected_city = get_value_from_feature_params(
-        CityModel.objects.all(), generation.city
-    )
-    selected_job = get_value_from_feature_params(
+    selected_city = get_random_value_from_qs(CityModel.objects.all(), generation.city)
+    selected_job = get_random_value_from_qs(
         JobSphereModel.objects.all(), generation.job
     )
-    selected_sprite = get_value_from_feature_params(
+    selected_sprite = get_random_value_from_qs(
         SpriteModel.objects.filter(
             gender=selected_gender,
             age_group=selected_age_group,
@@ -119,21 +129,20 @@ def _get_client(situation: SituationModel, generation: Generation) -> Client:
     if selected_gender == "female":
         message = situation.female_text
 
-    return Client(
-        gender=selected_gender,
-        age=selected_age_group.name,
-        job_sphere=selected_job.name,
-        is_married=is_married,
-        is_have_child=is_have_child,
-        is_have_real_estate=is_have_real_estate,
-        city=selected_city.name,
-        message=message,
-        sprite=selected_sprite.image.url,
+    return ClientGeneration(
+        client_gender=selected_gender,
+        client_age=selected_age_group,
+        client_job=selected_job,
+        client_is_married=is_married,
+        client_is_have_child=is_have_child,
+        client_is_have_real_estate=is_have_real_estate,
+        client_city=selected_city,
+        client_sprite=selected_sprite,
     )
 
 
 def _is_client_satisfy_condition(
-    client: Client,
+    client: ClientGeneration,
     cond: ProductRecommendationConditionModel,
 ) -> bool:
 
@@ -141,37 +150,36 @@ def _is_client_satisfy_condition(
 
     # TODO: Подумать упаковать эти условия как-то более атомарно
     if cond.children_condition is not None:
-        conditions.append(client.is_have_child == cond.children_condition)
+        conditions.append(client.client_is_have_child == cond.children_condition)
 
     if cond.real_estate_condition is not None:
-        conditions.append(client.is_have_real_estate == cond.real_estate_condition)
+        conditions.append(
+            client.client_is_have_real_estate == cond.real_estate_condition
+        )
 
     if cond.age_group_condition is not None:
-        conditions.append(client.age == cond.age_group_condition.name)
+        conditions.append(client.client_age == cond.age_group_condition)
 
     if cond.job_sphere_condition is not None:
-        conditions.append(client.job_sphere == cond.job_sphere_condition.name)
+        conditions.append(client.client_job == cond.job_sphere_condition)
 
     if cond.city_condition is not None:
-        conditions.append(client.city == cond.city_condition.name)
+        conditions.append(client.client_city == cond.city_condition)
 
     return all(conditions)
 
-def _wrap_answers(
-    products: list[ProductModel], is_correct: bool
-) -> list[SituationAnswer]:
-    return [
-        SituationAnswer.model_validate(
-            {"product": product, "is_correct": is_correct}
-        )
-        for product in products
-    ]
+
+@dataclasses.dataclass
+class AnswerGeneration:
+    correct_answers: list[ProductModel]
+    incorrect_answers: list[ProductModel]
+
 
 def _get_answers(
     situation: SituationModel,
     generation: Generation,
-    generated_client: Client,
-) -> list[SituationAnswer]:
+    generated_client: ClientGeneration,
+) -> AnswerGeneration:
     correct_products_set = set(situation.common_products.all())
 
     for cond in situation.conditions.all():
@@ -198,12 +206,30 @@ def _get_answers(
         for val in generation.answers[generation.correct_answers_num :]
     ]
 
-    return _wrap_answers(true_answers, True) + _wrap_answers(false_answers, False)
+    return AnswerGeneration(
+        correct_answers=true_answers, incorrect_answers=false_answers
+    )
 
 
-def generate_situation(
+@dataclasses.dataclass
+class HintGeneration:
+    hint: HintModel
+
+
+def _get_hint(
+    generation: Generation, generated_answers: AnswerGeneration
+) -> HintGeneration:
+    answer_index = _get_index_from_random_val(
+        generation.hint, generation.correct_answers_num
+    )
+    product_to_hint = generated_answers.correct_answers[answer_index]
+    hint_qs = HintModel.objects.filter(product=product_to_hint)
+    return HintGeneration(hint=get_random_value_from_qs(hint_qs, generation.hint))
+
+
+def _generate_situation(
     generation_params: GenerateSituationParams,
-) -> Situation:
+) -> GenerationModel:
     generation = get_generation(generation_params)
 
     situation_count = SituationModel.objects.count()
@@ -227,9 +253,35 @@ def generate_situation(
         generation,
         generated_client,
     )
+    generated_hint = _get_hint(generation, generated_answers)
 
-    return Situation(
-        generation_params=generation_params,
-        client=generated_client,
-        answers=generated_answers,
+    generation_instance = GenerationModel.objects.create(
+        seed=generation_params.seed,
+        iteration=generation_params.num_iterations,
+        **dataclasses.asdict(generated_client),
+        **dataclasses.asdict(generated_hint),
     )
+
+    return generation_instance
+
+
+def generate_situation(generation_params: GenerateSituationParams) -> GenerationModel:
+    try:
+        return GenerationModel.objects.select_related(
+            "situation",
+            "client_age",
+            "client_job",
+            "client_city",
+            "client_sprite",
+            "hint",
+        ).get(
+            seed=generation_params.seed,
+            iteration=generation_params.num_iterations,
+        )
+    except GenerationModel.DoesNotExist:
+        return _generate_situation(generation_params)
+
+
+def get_hint(generation_params: GenerateSituationParams) -> HintModel:
+    generation_instance = generate_situation(generation_params)
+    return generation_instance.hint

@@ -1,44 +1,11 @@
-import enum
+from typing import TYPE_CHECKING, Self
 from uuid import UUID
 
 from pydantic import AnyHttpUrl, BaseModel, Field
 
+if TYPE_CHECKING:
+    from server.apps.game.models import GenerationModel
 
-# class GenderEnum(enum.StrEnum):
-#     MALE = enum.auto()
-#     FEMALE = enum.auto()
-#
-#
-# class JobSphereEnum(enum.StrEnum):
-#     IT = enum.auto()
-#     FINANCES = enum.auto()
-#     AGROCULTURE = enum.auto()
-#     CONSTRUCTION = enum.auto()
-#     EDUCATION = enum.auto()
-#     HEALTHCARE = enum.auto()
-#
-#
-# class CityEnum(enum.StrEnum):
-#     MOSCOW = "Москва"
-#     NIZHNY_NOVGOROD = "Нижний Новгород"
-#     SAINT_PETERSBURG = "Санкт-Петербург"
-#     VOLOGDA = "Вологда"
-#     OBNINSK = "Обнинск"
-#     KALUGA = "Калуга"
-#     SOCHI = "Сочи"
-#     KAZAN = "Казань"
-#     EKATERINBURG = "Екатеринбург"
-#     ORENBURG = "Оренгбург"
-#     SAMARA = "Самара"
-#     KHABAROVSK = "Хабаровск"
-#     YUZHNO_SAKHALINSK = "Южно-Сахалинск"
-
-
-# class AgeEnum(enum.StrEnum):
-#     YOUNG = enum.auto()
-#     AVERAGE = enum.auto()
-#     RETIRED = enum.auto()
-#
 
 class Client(BaseModel):
     gender: str
@@ -78,6 +45,10 @@ class Situation(BaseModel):
     answers: list[SituationAnswer] = Field(
         description="Варианты продуктов к рекоммендации"
     )
+
+    @classmethod
+    def from_generation_model(cls, generation: "GenerationModel") -> Self:
+        raise NotImplementedError
 
 
 class ValidateSituationAnswer(BaseModel):
