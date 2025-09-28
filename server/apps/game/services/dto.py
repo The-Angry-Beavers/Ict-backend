@@ -74,6 +74,7 @@ class Review(BaseModel):
     client: Client
     review: str
     is_success: bool
+    rating: int
 
 
 class AcknowledgeDayFinishResponse(BaseModel):

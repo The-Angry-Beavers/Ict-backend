@@ -1,8 +1,10 @@
 import dataclasses
+import itertools
 import random
 from typing import Final, Self, TypeVar, TYPE_CHECKING
 
 from django.db.models import Prefetch, QuerySet
+from ruamel.yaml.compat import check_anchorname_char
 
 from server.apps.game.models import (
     AgeGroupModel,
@@ -14,9 +16,13 @@ from server.apps.game.models import (
     ProductRecommendationConditionModel,
     SituationModel,
     SpriteModel,
+    GenerationAnswerModel,
 )
 from server.apps.game.services.dto import (
     GenerateSituationParams,
+    AcknowledgeDayFinish,
+    AcknowledgeDayFinishResponse,
+    Review,
 )
 
 if TYPE_CHECKING:
@@ -247,13 +253,19 @@ def _generate_situation(
         )
     ).get(pk=situation_id)
 
-    generated_client = _get_client(situation, generation)
+    generated_client = _get_client(
+        situation,
+        generation,
+    )
     generated_answers = _get_answers(
         situation,
         generation,
         generated_client,
     )
-    generated_hint = _get_hint(generation, generated_answers)
+    generated_hint = _get_hint(
+        generation,
+        generated_answers,
+    )
 
     generation_instance = GenerationModel.objects.create(
         seed=generation_params.seed,
@@ -261,22 +273,51 @@ def _generate_situation(
         **dataclasses.asdict(generated_client),
         **dataclasses.asdict(generated_hint),
     )
+    generation_answers_instance = GenerationAnswerModel.objects.bulk_create(
+        itertools.chain(
+            [
+                GenerationAnswerModel(
+                    generation=generation_instance,
+                    product=product,
+                    is_correct=True,
+                )
+                for product in generated_answers.correct_answers
+            ],
+            [
+                GenerationAnswerModel(
+                    generation=generation_instance,
+                    product=product,
+                    is_correct=False,
+                )
+                for product in generated_answers.incorrect_answers
+            ],
+        )
+    )
 
     return generation_instance
 
 
 def generate_situation(generation_params: GenerateSituationParams) -> GenerationModel:
     try:
-        return GenerationModel.objects.select_related(
-            "situation",
-            "client_age",
-            "client_job",
-            "client_city",
-            "client_sprite",
-            "hint",
-        ).get(
-            seed=generation_params.seed,
-            iteration=generation_params.num_iterations,
+        return (
+            GenerationModel.objects.select_related(
+                "situation",
+                "client_age",
+                "client_job",
+                "client_city",
+                "client_sprite",
+                "hint",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "answers",
+                    GenerationAnswerModel.objects.select_related("product"),
+                )
+            )
+            .get(
+                seed=generation_params.seed,
+                iteration=generation_params.num_iterations,
+            )
         )
     except GenerationModel.DoesNotExist:
         return _generate_situation(generation_params)
@@ -285,3 +326,40 @@ def generate_situation(generation_params: GenerateSituationParams) -> Generation
 def get_hint(generation_params: GenerateSituationParams) -> HintModel:
     generation_instance = generate_situation(generation_params)
     return generation_instance.hint
+
+
+def check_answers(
+    generation_instance: GenerationModel,
+    chosen_product_ids: list[int],
+) -> Review:
+    pass
+
+
+def acknowledge_day_finish(data: AcknowledgeDayFinish) -> AcknowledgeDayFinishResponse:
+
+    generation_qs = GenerationModel.objects.prefetch_related(
+        Prefetch(
+            "answers",
+            GenerationAnswerModel.objects.select_related("product"),
+        )
+    ).filter(seed=data.seed)
+    generation_by_iteration = {gen.iteration: gen for gen in generation_qs}
+    reviews = []
+    for ans in data.answers:
+        generation_instance = generation_by_iteration.get(ans.iteration)
+        if generation_instance is None:
+            generation_instance = generate_situation(
+                GenerateSituationParams(
+                    seed=data.seed,
+                    num_iterations=ans.iteration,
+                )
+            )
+
+        reviews.append(
+            check_answers(
+                generation_instance,
+                ans.recommended_product_ids,
+            )
+        )
+
+    return AcknowledgeDayFinishResponse(reviews=reviews)
