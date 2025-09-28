@@ -16,11 +16,26 @@ class Client(BaseModel):
     is_have_real_estate: bool
     city: str
     message: str
-    sprite: AnyHttpUrl
+    sprite: str
 
     @classmethod
     def from_generation(cls, generation_instance: "GenerationModel") -> Self:
-        raise NotImplementedError
+        data = {
+            "gender": generation_instance.client_gender,
+            "age": generation_instance.client_age.name,
+            "job_sphere": generation_instance.client_job.name,
+            "is_married": generation_instance.client_is_married,
+            "is_have_child": generation_instance.client_is_have_child,
+            "is_have_real_estate": generation_instance.client_is_have_real_estate,
+            "city": generation_instance.client_city.name,
+            "sprite": generation_instance.client_sprite.image.url,
+            "message": generation_instance.situation.male_text
+        }
+
+        if generation_instance.client_gender == "female":
+            data["message"] = generation_instance.situation.female_text
+
+        return cls.model_validate(data)
 
 
 class Product(BaseModel):
@@ -52,7 +67,19 @@ class Situation(BaseModel):
 
     @classmethod
     def from_generation_model(cls, generation: "GenerationModel") -> Self:
-        raise NotImplementedError
+        data = {
+            "generation_params": GenerateSituationParams(
+                seed=generation.seed,
+                num_iterations=generation.iteration,
+            ),
+            "client": Client.from_generation(generation),
+            "answers": [
+                SituationAnswer.model_validate(ans, from_attributes=True)
+                for ans in generation.answers.all()
+            ],
+        }
+
+        return cls.model_validate(data)
 
 
 class ValidateSituationAnswer(BaseModel):

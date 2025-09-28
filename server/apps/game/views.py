@@ -28,7 +28,10 @@ def get_hint(
     request: HttpRequest, generation_params: GenerateSituationParams
 ) -> SituationHint:
     hint_instance = generation.get_hint(generation_params)
-    return SituationHint.model_validate(hint_instance)
+    return SituationHint.model_validate(
+        hint_instance,
+        from_attributes=True,
+    )
 
 
 @router.post("/acknowledgeDayFinish", response=AcknowledgeDayFinish)

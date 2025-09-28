@@ -20,15 +20,23 @@ class ProductModel(models.Model):
     name = models.CharField(verbose_name="название")
     link = models.URLField(verbose_name="ссылка на продукт")
 
+    def __str__(self) -> str:
+        return self.name
+
 
 @final
 class JobSphereModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
 
+    def __str__(self) -> str:
+        return self.name
 
 @final
 class AgeGroupModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
+
+    def __str__(self) -> str:
+        return self.name
 
 
 @final
@@ -46,14 +54,17 @@ class SpriteModel(FeatureParamModel):
 class CityModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
 
+    def __str__(self) -> str:
+        return self.name
+
 
 @final
 class ReviewModel(models.Model):
     product = models.ForeignKey(to=ProductModel, on_delete=models.PROTECT, null=True)
     is_product_in_answer = models.BooleanField(
         choices=[
-            (True, "Есть"),
-            (False, "Нет"),
+            (True, "Не нужен, но указали"),
+            (False, "Нужен, но не указали"),
         ]
     )
     text = models.TextField()
@@ -101,20 +112,20 @@ class ProductRecommendationConditionModel(models.Model):
     )
     children_condition = models.BooleanField(
         null=True,
-        choices=BOOL_CONDITION_CHOICES,
+        choices=BOOL_CONDITION_CHOICES, blank=True
     )
     real_estate_condition = models.BooleanField(
         null=True,
-        choices=BOOL_CONDITION_CHOICES,
+        choices=BOOL_CONDITION_CHOICES, blank=True
     )
     age_group_condition = models.ForeignKey(
-        to=AgeGroupModel, on_delete=models.CASCADE, null=True
+        to=AgeGroupModel, on_delete=models.CASCADE, null=True, blank=True
     )
     job_sphere_condition = models.ForeignKey(
-        to=JobSphereModel, on_delete=models.CASCADE, null=True
+        to=JobSphereModel, on_delete=models.CASCADE, null=True, blank=True
     )
     city_condition = models.ForeignKey(
-        to=CityModel, on_delete=models.CASCADE, null=True
+        to=CityModel, on_delete=models.CASCADE, null=True, blank=True
     )
 
 

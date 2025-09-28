@@ -168,7 +168,7 @@ MEDIA_ROOT = BASE_DIR.joinpath("media")
 # https://docs.djangoproject.com/en/5.2/topics/auth/
 
 AUTHENTICATION_BACKENDS = (
-    "axes.backends.AxesBackend",
+    # "axes.backends.AxesBackend",
     "django.contrib.auth.backends.ModelBackend",
 )
 

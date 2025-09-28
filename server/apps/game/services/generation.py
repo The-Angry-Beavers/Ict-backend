@@ -234,7 +234,9 @@ def _generate_situation(
     generation = get_generation(generation_params)
 
     situation_count = SituationModel.objects.count()
-    situation_id = _get_index_from_random_val(generation.situation, situation_count)
+    # TODO: Подумать над этой семантикой как-то по-другому
+    # Чисто в теории семантика индексов удобная, но ебучая пиздц...
+    situation_index = _get_index_from_random_val(generation.situation, situation_count)
     situation = SituationModel.objects.prefetch_related(
         Prefetch(
             "conditions",
@@ -246,7 +248,7 @@ def _generate_situation(
                 "city_condition",
             ),
         )
-    ).get(pk=situation_id)
+    )[situation_index]
 
     generated_client = _get_client(
         situation,
@@ -265,6 +267,7 @@ def _generate_situation(
     generation_instance = GenerationModel.objects.create(
         seed=generation_params.seed,
         iteration=generation_params.num_iterations,
+        situation=situation,
         **dataclasses.asdict(generated_client),
         **dataclasses.asdict(generated_hint),
     )
@@ -292,30 +295,35 @@ def _generate_situation(
     return generation_instance
 
 
-def generate_situation(generation_params: GenerateSituationParams) -> GenerationModel:
-    try:
-        return (
-            GenerationModel.objects.select_related(
-                "situation",
-                "client_age",
-                "client_job",
-                "client_city",
-                "client_sprite",
-                "hint",
-            )
-            .prefetch_related(
-                Prefetch(
-                    "answers",
-                    GenerationAnswerModel.objects.select_related("product"),
-                )
-            )
-            .get(
-                seed=generation_params.seed,
-                iteration=generation_params.num_iterations,
+def _fetch_generation(generation_params: GenerateSituationParams) -> GenerationModel:
+    return (
+        GenerationModel.objects.select_related(
+            "situation",
+            "client_age",
+            "client_job",
+            "client_city",
+            "client_sprite",
+            "hint",
+        )
+        .prefetch_related(
+            Prefetch(
+                "answers",
+                GenerationAnswerModel.objects.select_related("product"),
             )
         )
+        .get(
+            seed=generation_params.seed,
+            iteration=generation_params.num_iterations,
+        )
+    )
+
+
+def generate_situation(generation_params: GenerateSituationParams) -> GenerationModel:
+    try:
+        return _fetch_generation(generation_params)
     except GenerationModel.DoesNotExist:
-        return _generate_situation(generation_params)
+        _generate_situation(generation_params)
+        return _fetch_generation(generation_params)
 
 
 def get_hint(generation_params: GenerateSituationParams) -> HintModel:

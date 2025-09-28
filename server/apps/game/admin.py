@@ -8,33 +8,46 @@ from server.apps.game.models import (
     ProductModel,
     ReviewModel,
     SituationModel,
-    SpriteModel,
+    SpriteModel, ProductRecommendationConditionModel,
 )
 
 
+class HintInline(admin.StackedInline):
+    model = HintModel
+    extra = 0
+
+class ReviewInline(admin.StackedInline):
+    model = ReviewModel
+    extra = 0
+
+class ProductRecommendationConditionInline(admin.StackedInline):
+    model = ProductRecommendationConditionModel
+    extra = 0
+
 @admin.register(ProductModel)
 class ProductModelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["id", "name"]
+    inlines = [HintInline, ReviewInline]
 
 
 @admin.register(JobSphereModel)
 class JobSphereModelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["id", "name"]
 
 
 @admin.register(SpriteModel)
 class SpriteModelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["gender", "age_group"]
 
 
 @admin.register(AgeGroupModel)
 class AgeGroupModelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["id", "name"]
 
 
 @admin.register(CityModel)
 class CityModelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["id", "name"]
 
 
 @admin.register(ReviewModel)
@@ -49,7 +62,7 @@ class HintModelAdmin(admin.ModelAdmin):
 
 @admin.register(SituationModel)
 class SituationModelAdmin(admin.ModelAdmin):
-    pass
+    inlines = [ProductRecommendationConditionInline]
 
 
 # @admin.register(ProductRecommendationModel)
