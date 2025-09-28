@@ -83,7 +83,7 @@ class Review(BaseModel):
 class AcknowledgeDayFinishResponse(BaseModel):
     reviews: list[Review]
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def total_rating(self) -> int:
         return sum([rev.rating for rev in self.reviews])
