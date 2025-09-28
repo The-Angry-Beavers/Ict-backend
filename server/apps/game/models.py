@@ -31,6 +31,7 @@ class JobSphereModel(FeatureParamModel):
     def __str__(self) -> str:
         return self.name
 
+
 @final
 class AgeGroupModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
@@ -60,12 +61,18 @@ class CityModel(FeatureParamModel):
 
 @final
 class ReviewModel(models.Model):
-    product = models.ForeignKey(to=ProductModel, on_delete=models.PROTECT, null=True)
+    product = models.ForeignKey(
+        to=ProductModel,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
     is_product_in_answer = models.BooleanField(
         choices=[
             (True, "Не нужен, но указали"),
             (False, "Нужен, но не указали"),
-        ]
+        ],
+        blank=True,
     )
     text = models.TextField()
 
@@ -111,12 +118,10 @@ class ProductRecommendationConditionModel(models.Model):
         related_name="conditions",
     )
     children_condition = models.BooleanField(
-        null=True,
-        choices=BOOL_CONDITION_CHOICES, blank=True
+        null=True, choices=BOOL_CONDITION_CHOICES, blank=True
     )
     real_estate_condition = models.BooleanField(
-        null=True,
-        choices=BOOL_CONDITION_CHOICES, blank=True
+        null=True, choices=BOOL_CONDITION_CHOICES, blank=True
     )
     age_group_condition = models.ForeignKey(
         to=AgeGroupModel, on_delete=models.CASCADE, null=True, blank=True

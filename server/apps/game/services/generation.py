@@ -4,6 +4,7 @@ import random
 from typing import Final, Self, TypeVar
 
 from django.db.models import Prefetch, QuerySet, Q, Model
+from safety.safety import review
 
 from server.apps.game.models import (
     AgeGroupModel,
@@ -349,7 +350,7 @@ def check_answers(
     )
 
     points_per_answer = TOTAL_POINTS // len(correct_generated_answers)
-    correct_product_ids = set([product.id for product in correct_generated_answers])
+    correct_product_ids = set([ans.product_id for ans in correct_generated_answers])
     answered_product_ids = set(chosen_product_ids)
 
     correct_answers = correct_product_ids & answered_product_ids
@@ -360,10 +361,10 @@ def check_answers(
     points_for_incorrect_answers = len(incorrect_answers) * INCORRECT_ANSWER_FINE
     total_points = abs(points_for_correct_answers - points_for_incorrect_answers)
 
-    q_object = Q()
+    q_object = Q(product_id__in=correct_product_ids)
 
     # нет потерянных ответов и неправильных -> идеальный ответ
-    if len(incorrect_answers) == 0 and len(lost_correct_answers):
+    if len(incorrect_answers) == 0 and len(lost_correct_answers) == 0:
         q_object = Q(product__isnull=True)
 
     #  Есть какой-то продукт, который не нужен

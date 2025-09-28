@@ -34,7 +34,7 @@ def get_hint(
     )
 
 
-@router.post("/acknowledgeDayFinish", response=AcknowledgeDayFinish)
+@router.post("/acknowledgeDayFinish", response=AcknowledgeDayFinishResponse)
 def acknowledge_day_finish(
     request: HttpRequest, data: AcknowledgeDayFinish
 ) -> AcknowledgeDayFinishResponse:
