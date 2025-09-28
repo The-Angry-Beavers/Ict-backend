@@ -2,6 +2,10 @@ from typing import Final, final
 
 from django.db import models
 
+class FeatureParamModel(models.Model):
+
+    class Meta:
+        abstract = True
 
 @final
 class GenderEnum(models.TextChoices):
@@ -16,22 +20,28 @@ class ProductModel(models.Model):
 
 
 @final
-class JobSphereModel(models.Model):
+class JobSphereModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
 
 
 @final
-class SpriteModel(models.Model):
+class AgeGroupModel(FeatureParamModel):
+    name = models.CharField(verbose_name="название")
+
+
+@final
+class SpriteModel(FeatureParamModel):
     image = models.FileField(upload_to="sprites")
 
+    gender = models.CharField(max_length=8, choices=GenderEnum.choices)
+    age_group = models.ForeignKey(
+        to=AgeGroupModel,
+        on_delete=models.PROTECT,
+    )
+
 
 @final
-class AgeGroupModel(models.Model):
-    name = models.CharField(verbose_name="название")
-
-
-@final
-class CityModel(models.Model):
+class CityModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
 
 
@@ -54,12 +64,6 @@ class HintModel(models.Model):
     text = models.TextField()
 
 
-@final
-class SituationModel(models.Model):
-    male_text = models.TextField()
-    female_text = models.TextField()
-
-
 BOOL_CONDITION_CHOICES: Final[list[tuple[bool | None, str]]] = [
     (None, "Не важно"),
     (True, "Есть"),
@@ -68,11 +72,28 @@ BOOL_CONDITION_CHOICES: Final[list[tuple[bool | None, str]]] = [
 
 
 @final
-class ProductRecommendationModel(models.Model):
+class SituationModel(models.Model):
+    male_text = models.TextField()
+    female_text = models.TextField()
+    common_products = models.ManyToManyField(to=ProductModel)
 
-    situations = models.ForeignKey(
+    real_estate_condition = models.BooleanField(
+        null=True,
+        choices=BOOL_CONDITION_CHOICES,
+    )
+
+
+@final
+class ProductRecommendationConditionModel(models.Model):
+
+    product = models.ForeignKey(
+        to=ProductModel,
+        on_delete=models.CASCADE,
+    )
+    situation = models.ForeignKey(
         to=SituationModel,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
+        related_name="conditions",
     )
     children_condition = models.BooleanField(
         null=True,
@@ -82,8 +103,18 @@ class ProductRecommendationModel(models.Model):
         null=True,
         choices=BOOL_CONDITION_CHOICES,
     )
-    age_groups_condition = models.ManyToManyField(to=AgeGroupModel)
-    job_spheres_condition = models.ManyToManyField(to=JobSphereModel)
-    cities_condition = models.ManyToManyField(to=CityModel)
-
-    products = models.ManyToManyField(to=ProductModel)
+    age_group_condition = models.ForeignKey(
+        to=AgeGroupModel,
+        on_delete=models.CASCADE,
+        null=True
+    )
+    job_sphere_condition = models.ForeignKey(
+        to=JobSphereModel,
+        on_delete=models.CASCADE,
+        null=True
+    )
+    city_condition = models.ForeignKey(
+        to=CityModel,
+        on_delete=models.CASCADE,
+        null=True
+    )

@@ -1,15 +1,16 @@
+from django.contrib import admin
+
 from server.apps.game.models import (
-    ProductModel,
-    JobSphereModel,
-    SpriteModel,
     AgeGroupModel,
     CityModel,
-    ReviewModel,
     HintModel,
-    SituationModel,
+    JobSphereModel,
+    ProductModel,
     ProductRecommendationModel,
+    ReviewModel,
+    SituationModel,
+    SpriteModel,
 )
-from django.contrib import admin
 
 
 @admin.register(ProductModel)
