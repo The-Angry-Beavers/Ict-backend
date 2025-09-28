@@ -1,4 +1,4 @@
-from typing import Self, Final, Sequence, TypeVar
+from typing import Self, Final, Sequence, TypeVar, Any
 
 from django.db.models import Prefetch, QuerySet
 
@@ -11,8 +11,14 @@ from server.apps.game.models import (
     CityModel,
     JobSphereModel,
     SpriteModel,
+    ProductModel,
 )
-from server.apps.game.services.dto import Situation, GenerateSituationParams, Client
+from server.apps.game.services.dto import (
+    Situation,
+    GenerateSituationParams,
+    Client,
+    SituationAnswer,
+)
 import random
 import dataclasses
 
@@ -126,6 +132,46 @@ def _get_client(situation: SituationModel, generation: Generation) -> Client:
     )
 
 
+def _is_client_satisfy_condition(
+    client: Any, cond: ProductRecommendationConditionModel
+) -> bool:
+    pass
+
+
+def _get_answers(
+    situation: SituationModel,
+    generation: Generation,
+    generated_client: Client,
+) -> list[ProductModel]:
+    correct_products_set = set(situation.common_products.all())
+
+    for cond in situation.conditions.all():
+        if _is_client_satisfy_condition(generated_client, cond):
+            correct_products_set.add(cond.product)
+
+    correct_product_list = list(correct_products_set)
+    other_products_qs = ProductModel.objects.exclude(
+        id__in=[_.id for _ in correct_product_list]
+    )
+
+    true_answers = [
+        correct_product_list[
+            _get_index_from_random_val(
+                val,
+                len(correct_product_list),
+            )
+        ]
+        for val in generation.answers[: generation.correct_answers_num]
+    ]
+
+    false_answers = [
+        other_products_qs[_get_index_from_random_val(val, other_products_qs.count())]
+        for val in generation.answers[generation.correct_answers_num :]
+    ]
+
+    return true_answers + false_answers
+
+
 def generate_situation(
     generation_params: GenerateSituationParams,
 ) -> Situation:
@@ -147,4 +193,10 @@ def generate_situation(
     ).get(pk=situation_id)
 
     generated_client = _get_client(situation, generation)
+    generated_answers = _get_answers(situation, generation)
 
+    return Situation(
+        generation_params=generation_params,
+        client=generated_client,
+        answers=generated_answers,
+    )
