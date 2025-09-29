@@ -1,4 +1,4 @@
-from typing import Final, final
+from typing import Final, final, override
 
 from django.db import models
 
@@ -20,6 +20,7 @@ class ProductModel(models.Model):
     name = models.CharField(verbose_name="название")
     link = models.URLField(verbose_name="ссылка на продукт")
 
+    @override
     def __str__(self) -> str:
         return self.name
 
@@ -28,6 +29,7 @@ class ProductModel(models.Model):
 class JobSphereModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
 
+    @override
     def __str__(self) -> str:
         return self.name
 
@@ -36,6 +38,7 @@ class JobSphereModel(FeatureParamModel):
 class AgeGroupModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
 
+    @override
     def __str__(self) -> str:
         return self.name
 
@@ -55,6 +58,7 @@ class SpriteModel(FeatureParamModel):
 class CityModel(FeatureParamModel):
     name = models.CharField(verbose_name="название")
 
+    @override
     def __str__(self) -> str:
         return self.name
 
@@ -102,6 +106,7 @@ class SituationModel(models.Model):
     real_estate_condition = models.BooleanField(
         null=True,
         choices=BOOL_CONDITION_CHOICES,
+        blank=True,
     )
 
 
