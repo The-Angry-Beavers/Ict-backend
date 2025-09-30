@@ -9,7 +9,7 @@ from server.apps.game.models import (
     ReviewModel,
     SituationModel,
     SpriteModel,
-    ProductRecommendationConditionModel,
+    ProductRecommendationConditionModel, FirstNameModel, LastNameModel,
 )
 
 
@@ -80,3 +80,12 @@ class SituationModelAdmin(admin.ModelAdmin):
 # @admin.register(ProductRecommendationModel)
 # class ProductRecommendationModelAdmin(admin.ModelAdmin):
 #     pass
+
+
+@admin.register(FirstNameModel)
+class FirstNameModelAdmin(admin.ModelAdmin):
+    list_display = ["content"]
+
+@admin.register(LastNameModel)
+class LastNameModelAdmin(admin.ModelAdmin):
+    list_display = ["content"]
