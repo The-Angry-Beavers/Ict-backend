@@ -28,6 +28,7 @@ from server.apps.game.services.dto import (
     Review,
     Client,
     ProductReview,
+    Product,
 )
 
 TOTAL_POINTS: Final[int] = 10
@@ -462,7 +463,9 @@ def check_answers(
         reviews.append(
             ProductReview.model_validate(
                 {
-                    "product": ans.product,
+                    "product": Product.model_validate(
+                        ans.product, from_attributes=True
+                    ),
                     "is_correct": ans.is_correct,
                     "review": chosen_review,
                 }
