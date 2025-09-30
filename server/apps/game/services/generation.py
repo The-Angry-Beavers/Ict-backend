@@ -113,6 +113,8 @@ class ClientGeneration:
     client_is_have_real_estate: bool
     client_city: CityModel
     client_sprite: SpriteModel
+    client_first_name: FirstNameModel
+    client_last_name: LastNameModel
 
 
 def _get_client(situation: SituationModel, generation: Generation) -> ClientGeneration:
