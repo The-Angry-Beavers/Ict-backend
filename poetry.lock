@@ -722,6 +722,22 @@ django = ">=4.2"
 ipware = ["django-ipware (>=3)"]
 
 [[package]]
+name = "django-cors-headers"
+version = "4.9.0"
+description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "django_cors_headers-4.9.0-py3-none-any.whl", hash = "sha256:15c7f20727f90044dcee2216a9fd7303741a864865f0c3657e28b7056f61b449"},
+    {file = "django_cors_headers-4.9.0.tar.gz", hash = "sha256:fe5d7cb59fdc2c8c646ce84b727ac2bca8912a247e6e68e1fb507372178e59e8"},
+]
+
+[package.dependencies]
+asgiref = ">=3.6"
+django = ">=4.2"
+
+[[package]]
 name = "django-coverage-plugin"
 version = "3.1.1"
 description = "Django template coverage.py plugin"
@@ -3385,4 +3401,4 @@ dev = ["doc8", "flake8", "flake8-import-order", "rstcheck[sphinx]", "sphinx"]
 [metadata]
 lock-version = "2.1"
 python-versions = "==3.12.10"
-content-hash = "96aba8c2d2cc75e500f9fed60d2f8adcbad2eb1818a7940c76815d9d5f487a0d"
+content-hash = "9652525fa84bf94fb08fa3f726ac301bba7d67888739515d63c213f51fabb68d"

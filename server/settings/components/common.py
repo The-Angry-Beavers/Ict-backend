@@ -42,6 +42,8 @@ INSTALLED_APPS: tuple[str, ...] = (
     "health_check.db",
     "health_check.cache",
     "health_check.storage",
+    # CORS
+    "corsheaders",
 )
 
 MIDDLEWARE: tuple[str, ...] = (
@@ -51,6 +53,8 @@ MIDDLEWARE: tuple[str, ...] = (
     # "csp.middleware.CSPMiddleware",
     # Django:
     "django.middleware.security.SecurityMiddleware",
+    # cors:
+    "corsheaders.middleware.CorsMiddleware",
     # django-permissions-policy
     "django_permissions_policy.PermissionsPolicyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -203,3 +207,8 @@ PERMISSIONS_POLICY: dict[str, str | list[str]] = {}
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-EMAIL_TIMEOUT
 
 EMAIL_TIMEOUT = 5
+
+CORS_ALLOWED_ORIGINS = ["*"]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = ["*"]
