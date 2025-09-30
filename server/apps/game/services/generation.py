@@ -430,7 +430,12 @@ def check_answers(
             num_iterations=generation_instance.iteration,
         )
     )
-    generation = Generation.generate(random_instance)
+    generation = get_generation(
+        GenerateSituationParams(
+            seed=generation_instance.seed,
+            num_iterations=generation_instance.iteration,
+        )
+    )
     review_instance = get_random_value_from_qs(review_qs, generation.review)
 
     return Review(
