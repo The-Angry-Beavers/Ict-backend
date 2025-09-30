@@ -84,8 +84,8 @@ def _get_random_instance(generation_params: GenerateSituationParams) -> random.R
 
 def get_generation(generation_params: GenerateSituationParams) -> Generation:
     random_instance = _get_random_instance(generation_params)
-
-    for _ in range(generation_params.num_iterations - 1):
+    total_iters = generation_params.num_iterations + 1
+    for _ in range(total_iters):
         Generation.generate(random_instance)
 
     return Generation.generate(random_instance)
