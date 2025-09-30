@@ -4,7 +4,6 @@ import random
 from typing import Final, Self, TypeVar
 
 from django.db.models import Prefetch, QuerySet, Q, Model
-from safety.safety import review
 
 from server.apps.game.models import (
     AgeGroupModel,

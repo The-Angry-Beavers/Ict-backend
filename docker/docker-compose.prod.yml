@@ -6,26 +6,26 @@
 # See `./docs/pages/template/production.rst` docs.
 
 services:
-  caddy:
-    build:
-      context: .
-      dockerfile: ./docker/caddy/Dockerfile
-    restart: unless-stopped
-    env_file: ./config/.env
-    volumes:
-      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile  # configuration
-      - ./docker/caddy/ci.sh:/etc/ci.sh  # test script
-      - caddy-config:/config  # configuration autosaves
-      - caddy-data:/data  # saving certificates
-      - django-static:/var/www/django/static  # serving django's statics
-      - django-media:/var/www/django/media  # serving django's media
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - web
-    networks:
-      - proxy-net
+#  caddy:
+#    build:
+#      context: .
+#      dockerfile: ./docker/caddy/Dockerfile
+#    restart: unless-stopped
+#    env_file: ./config/.env
+#    volumes:
+#      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile  # configuration
+#      - ./docker/caddy/ci.sh:/etc/ci.sh  # test script
+#      - caddy-config:/config  # configuration autosaves
+#      - caddy-data:/data  # saving certificates
+#      - django-static:/var/www/django/static  # serving django's statics
+#      - django-media:/var/www/django/media  # serving django's media
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#    depends_on:
+#      - web
+#    networks:
+#      - proxy-net
 
   web:
     <<: &web  # Image for production:
