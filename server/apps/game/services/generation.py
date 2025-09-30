@@ -274,7 +274,7 @@ def _get_hint(
     generation: Generation, generated_answers: AnswerGeneration
 ) -> HintGeneration:
     answer_index = _get_index_from_random_val(
-        generation.hint, generation.correct_answers_num
+        generation.hint, len(generated_answers.correct_answers)
     )
     product_to_hint = generated_answers.correct_answers[answer_index]
     hint_qs = HintModel.objects.filter(product=product_to_hint)
