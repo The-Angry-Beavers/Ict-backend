@@ -4,10 +4,8 @@ import random
 from collections import defaultdict
 from typing import Final, Self, TypeVar
 
-from django.db.models import Prefetch, QuerySet, Q, Model
-from jedi.inference.gradual.typing import TypeAlias
+from django.db.models import Prefetch, QuerySet, Model
 
-from docs.conf import version
 from server.apps.game.models import (
     AgeGroupModel,
     CityModel,
