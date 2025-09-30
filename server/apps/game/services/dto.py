@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 
 class Client(BaseModel):
+    first_name: str
+    last_name: str
     gender: str
     age: str
     job_sphere: str
@@ -29,7 +31,9 @@ class Client(BaseModel):
             "is_have_real_estate": generation_instance.client_is_have_real_estate,
             "city": generation_instance.client_city.name,
             "sprite": generation_instance.client_sprite.image.url,
-            "message": generation_instance.situation.male_text
+            "message": generation_instance.situation.male_text,
+            "first_name": generation_instance.client_first_name.content,
+            "last_name": generation_instance.client_last_name.content,
         }
 
         if generation_instance.client_gender == "female":
