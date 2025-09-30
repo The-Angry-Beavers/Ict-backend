@@ -1,10 +1,13 @@
 import dataclasses
 import itertools
 import random
+from collections import defaultdict
 from typing import Final, Self, TypeVar
 
 from django.db.models import Prefetch, QuerySet, Q, Model
+from jedi.inference.gradual.typing import TypeAlias
 
+from docs.conf import version
 from server.apps.game.models import (
     AgeGroupModel,
     CityModel,
@@ -26,6 +29,7 @@ from server.apps.game.services.dto import (
     AcknowledgeDayFinishResponse,
     Review,
     Client,
+    ProductReview,
 )
 
 TOTAL_POINTS: Final[int] = 10
@@ -384,16 +388,39 @@ def get_hint(generation_params: GenerateSituationParams) -> HintModel:
     return generation_instance.hint
 
 
+LostReviews = list[str]
+IncorrectReviews = list[str]
+
+
+def _get_reviews_for_products_ids(
+    products_ids: list[int],
+) -> tuple[dict[int, LostReviews], dict[int, IncorrectReviews]]:
+    res_lost: defaultdict[int, LostReviews] = defaultdict(list)
+    res_incorrect: defaultdict[int, IncorrectReviews] = defaultdict(list)
+    review_qs = ReviewModel.objects.filter(product_id__in=products_ids)
+
+    for rew in review_qs:
+        if rew.product_id is not None:
+            if rew.is_product_in_answer:
+                res_incorrect[rew.product_id].append(rew.text)
+            else:
+                res_lost[rew.product_id].append(rew.text)
+
+    return res_lost, res_incorrect
+
+
 def check_answers(
     generation_instance: GenerationModel,
     chosen_product_ids: list[int],
 ) -> Review:
     # Реализовывается не методами, так как создание нового кверисета ведет
     # к еще одному запросу к бд, что нам не особо хочется делать
+    generated_answers = list(generation_instance.answers.all())
+
     correct_generated_answers = list(
         filter(
             lambda ans: ans.is_correct,
-            generation_instance.answers.all(),
+            generated_answers,
         )
     )
 
@@ -409,32 +436,61 @@ def check_answers(
     points_for_incorrect_answers = len(incorrect_answers) * INCORRECT_ANSWER_FINE
     total_points = abs(points_for_correct_answers - points_for_incorrect_answers)
 
-    q_object = Q(product_id__in=correct_product_ids)
+    success_reviews = ReviewModel.objects.filter(product__isnull=True).values_list(
+        "text", flat=True
+    )
+    lost_reviews, incorrect_reviews = _get_reviews_for_products_ids(
+        [ans.product_id for ans in generated_answers]
+    )
 
-    # нет потерянных ответов и неправильных -> идеальный ответ
-    if len(incorrect_answers) == 0 and len(lost_correct_answers) == 0:
-        q_object = Q(product__isnull=True)
-
-    #  Есть какой-то продукт, который не нужен
-    if len(incorrect_answers):
-        q_object |= Q(is_product_in_answer=True)
-
-    # Есть какой-то потерянный правильный ответ
-    if len(lost_correct_answers):
-        q_object |= Q(is_product_in_answer=False)
-
-    review_qs = ReviewModel.objects.filter(q_object)
     generation = get_generation(
         GenerateSituationParams(
             seed=generation_instance.seed,
             num_iterations=generation_instance.iteration,
         )
     )
-    review_instance = get_random_value_from_qs(review_qs, generation.review)
+
+    reviews = []
+    for ans in generation_instance.answers.all():
+        random_instance = random.Random(generation.review)
+        chosen_review = random_instance.choice(success_reviews)
+
+        if ans.product_id in lost_correct_answers:
+            chosen_review = random_instance.choice(lost_reviews[ans.product_id])
+
+        if ans.product_id in incorrect_answers:
+            chosen_review = random_instance.choice(incorrect_reviews[ans.product_id])
+
+        reviews.append(
+            ProductReview.model_validate(
+                {
+                    "product": ans.product,
+                    "is_correct": ans.is_correct,
+                    "review": chosen_review,
+                }
+            )
+        )
+
+    # q_object = Q(product_id__in=correct_product_ids)
+    #
+    # # нет потерянных ответов и неправильных -> идеальный ответ
+    # if len(incorrect_answers) == 0 and len(lost_correct_answers) == 0:
+    #     q_object = Q(product__isnull=True)
+    #
+    # #  Есть какой-то продукт, который не нужен
+    # if len(incorrect_answers):
+    #     q_object |= Q(is_product_in_answer=True)
+    #
+    # # Есть какой-то потерянный правильный ответ
+    # if len(lost_correct_answers):
+    #     q_object |= Q(is_product_in_answer=False)
+    #
+    # review_qs = ReviewModel.objects.filter(q_object)
+    # review_instance = get_random_value_from_qs(review_qs, generation.review)
 
     return Review(
         client=Client.from_generation(generation_instance),
-        review=review_instance.text,
+        review=reviews,
         rating=total_points,
     )
 

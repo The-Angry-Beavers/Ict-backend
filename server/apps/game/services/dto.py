@@ -105,9 +105,15 @@ class AcknowledgeDayFinish(BaseModel):
     answers: list[AcknowledgeSituationAnswer]
 
 
+class ProductReview(BaseModel):
+    product: Product
+    is_correct: bool
+    review: str
+
+
 class Review(BaseModel):
     client: Client
-    review: str
+    review: list[ProductReview]
     rating: int
 
 
