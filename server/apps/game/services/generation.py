@@ -424,12 +424,6 @@ def check_answers(
         q_object |= Q(is_product_in_answer=False)
 
     review_qs = ReviewModel.objects.filter(q_object)
-    random_instance = _get_random_instance(
-        GenerateSituationParams(
-            seed=generation_instance.seed,
-            num_iterations=generation_instance.iteration,
-        )
-    )
     generation = get_generation(
         GenerateSituationParams(
             seed=generation_instance.seed,
