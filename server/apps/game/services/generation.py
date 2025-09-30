@@ -18,6 +18,8 @@ from server.apps.game.models import (
     SpriteModel,
     GenerationAnswerModel,
     ReviewModel,
+    FirstNameModel,
+    LastNameModel,
 )
 from server.apps.game.services.dto import (
     GenerateSituationParams,
@@ -45,6 +47,8 @@ class Generation:
     sprite: float
     hint: float
     review: float
+    first_name: float
+    last_name: float
 
     correct_answers_num: int
     answers: list[float]
@@ -52,6 +56,8 @@ class Generation:
     @classmethod
     def generate(cls, random_instance: random.Random) -> Self:
         return cls(
+            random_instance.random(),
+            random_instance.random(),
             random_instance.random(),
             random_instance.random(),
             random_instance.random(),
@@ -131,6 +137,15 @@ def _get_client(situation: SituationModel, generation: Generation) -> ClientGene
     if is_have_real_estate is None:
         is_have_real_estate = bool(_get_index_from_random_val(generation.is_married, 2))
 
+    selected_first_name = get_random_value_from_qs(
+        FirstNameModel.objects.filter(gender=selected_gender),
+        generation.first_name,
+    )
+    selected_last_name = get_random_value_from_qs(
+        LastNameModel.objects.filter(gender=selected_gender),
+        generation.last_name,
+    )
+
     return ClientGeneration(
         client_gender=selected_gender,
         client_age=selected_age_group,
@@ -140,6 +155,8 @@ def _get_client(situation: SituationModel, generation: Generation) -> ClientGene
         client_is_have_real_estate=is_have_real_estate,
         client_city=selected_city,
         client_sprite=selected_sprite,
+        client_first_name=selected_first_name,
+        client_last_name=selected_last_name,
     )
 
 

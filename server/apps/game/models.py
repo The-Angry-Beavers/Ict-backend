@@ -64,6 +64,32 @@ class CityModel(FeatureParamModel):
 
 
 @final
+class FirstNameModel(FeatureParamModel):
+    content = models.CharField(verbose_name="название")
+    gender = models.CharField(
+        max_length=8,
+        choices=GenderEnum.choices,
+    )
+
+    @override
+    def __str__(self) -> str:
+        return self.content
+
+
+@final
+class LastNameModel(FeatureParamModel):
+    content = models.CharField(verbose_name="название")
+    gender = models.CharField(
+        max_length=8,
+        choices=GenderEnum.choices,
+    )
+
+    @override
+    def __str__(self) -> str:
+        return self.content
+
+
+@final
 class ReviewModel(models.Model):
     product = models.ForeignKey(
         to=ProductModel,
@@ -153,6 +179,8 @@ class GenerationModel(models.Model):
     client_is_have_real_estate = models.BooleanField()
     client_city = models.ForeignKey(to=CityModel, on_delete=models.PROTECT)
     client_sprite = models.ForeignKey(to=SpriteModel, on_delete=models.PROTECT)
+    client_first_name = models.ForeignKey(to=FirstNameModel, on_delete=models.PROTECT)
+    client_last_name = models.ForeignKey(to=LastNameModel, on_delete=models.PROTECT)
 
     hint = models.ForeignKey(to=HintModel, on_delete=models.PROTECT)
 
