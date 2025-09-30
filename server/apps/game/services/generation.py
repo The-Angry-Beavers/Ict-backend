@@ -28,6 +28,11 @@ from server.apps.game.services.dto import (
     Client,
 )
 
+TOTAL_POINTS: Final[int] = 10
+INCORRECT_ANSWER_FINE: Final[int] = 3
+GENDERS: Final[tuple[str, ...]] = ("male", "female")
+TOTAL_ANSWERS_COUNT: Final[int] = 4
+
 
 @dataclasses.dataclass
 class Generation:
@@ -97,9 +102,6 @@ def get_random_value_from_qs(feature_qs: QuerySet[ModelT], val: float) -> ModelT
     feature_count = feature_qs.count()
     index = _get_index_from_random_val(val, feature_count)
     return feature_qs[index]
-
-
-GENDERS: Final[tuple[str, ...]] = ("male", "female")
 
 
 @dataclasses.dataclass
@@ -195,6 +197,23 @@ class AnswerGeneration:
     incorrect_answers: list[ProductModel]
 
 
+def _resolve_duplicate_indices(indices: list[int], _len: int) -> list[int]:
+    if len(set(indices)) > _len:
+        raise ValueError("Can not resolve indices")
+
+    result = []
+    used_indices = set()
+
+    for index in indices:
+        current_index = index
+        while current_index in used_indices:
+            current_index = (current_index + 1) % _len
+        used_indices.add(current_index)
+        result.append(current_index)
+
+    return result
+
+
 def _get_answers(
     situation: SituationModel,
     generation: Generation,
@@ -211,24 +230,38 @@ def _get_answers(
         id__in=[_.id for _ in correct_product_list]
     )
 
-    # FIXME: Перегенерировать повторяющиеся элементы
-    true_answers = [
-        correct_product_list[
-            _get_index_from_random_val(
-                val,
-                len(correct_product_list),
-            )
-        ]
-        for val in generation.answers[: generation.correct_answers_num]
-    ]
+    # Сколько можем в сумме выдать правильных ответов.
+    count_correct_answers = (
+        len(correct_product_list)
+        if len(correct_product_list) < generation.correct_answers_num
+        else generation.correct_answers_num
+    )
 
-    false_answers = [
-        other_products_qs[_get_index_from_random_val(val, other_products_qs.count())]
-        for val in generation.answers[generation.correct_answers_num :]
+    true_answers_indices = [
+        _get_index_from_random_val(
+            val,
+            len(correct_product_list),
+        )
+        for val in generation.answers[:count_correct_answers]
     ]
+    true_answers_indices = _resolve_duplicate_indices(
+        true_answers_indices, len(correct_product_list)
+    )
+
+    false_answers_indices = [
+        _get_index_from_random_val(val, other_products_qs.count())
+        for val in generation.answers[count_correct_answers:]
+    ]
+    false_answers_indices = _resolve_duplicate_indices(
+        false_answers_indices, other_products_qs.count()
+    )
+
+    true_answers = [correct_product_list[idx] for idx in true_answers_indices]
+    false_answers = [other_products_qs[idx] for idx in false_answers_indices]
 
     return AnswerGeneration(
-        correct_answers=true_answers, incorrect_answers=false_answers
+        correct_answers=true_answers,
+        incorrect_answers=false_answers,
     )
 
 
@@ -349,10 +382,6 @@ def generate_situation(generation_params: GenerateSituationParams) -> Generation
 def get_hint(generation_params: GenerateSituationParams) -> HintModel:
     generation_instance = generate_situation(generation_params)
     return generation_instance.hint
-
-
-TOTAL_POINTS: Final[int] = 10
-INCORRECT_ANSWER_FINE: Final[int] = 3
 
 
 def check_answers(

@@ -17,6 +17,7 @@ ALLOWED_HOSTS = [
     config("DOMAIN_NAME"),
     # We need this value for `healthcheck` to work:
     "localhost",
+    "game-backend.ru-central1.internal"
 ]
 
 
