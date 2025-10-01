@@ -512,6 +512,8 @@ def acknowledge_day_finish(data: AcknowledgeDayFinish) -> AcknowledgeDayFinishRe
             "client_job",
             "client_city",
             "client_sprite",
+            "client_first_name",
+            "client_last_name",
             "hint",
         )
         .prefetch_related(
