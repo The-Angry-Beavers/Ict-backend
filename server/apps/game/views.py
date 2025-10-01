@@ -42,7 +42,7 @@ def acknowledge_day_finish(
     return generation.acknowledge_day_finish(data)
 
 
-@router.post("/generateChunkSituations", response=list[GenerateChunkSituation])
+@router.post("/generateChunkSituations", response=list[Situation])
 def generate_situations_chunked(
     request: HttpRequest, data: GenerateChunkSituation
 ) -> list[Situation]:
