@@ -186,7 +186,7 @@ class GenerationModel(models.Model):
     hint = models.ForeignKey(to=HintModel, on_delete=models.PROTECT)
 
     class Meta:
-        unique_together = ("seed", "iteration")
+        unique_together = [("seed", "iteration")]
 
 
 # Нужна для того чтобы при изменении условий, генерация не изменялась.

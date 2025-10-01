@@ -8,6 +8,7 @@ from server.apps.game.services.dto import (
     SituationHint,
     AcknowledgeDayFinish,
     AcknowledgeDayFinishResponse,
+    GenerateChunkSituation,
 )
 from server.apps.game.services import generation
 
@@ -39,3 +40,13 @@ def acknowledge_day_finish(
     request: HttpRequest, data: AcknowledgeDayFinish
 ) -> AcknowledgeDayFinishResponse:
     return generation.acknowledge_day_finish(data)
+
+
+@router.post("/generateChunkSituations", response=list[GenerateChunkSituation])
+def acknowledge_day_finish(
+    request: HttpRequest, data: GenerateChunkSituation
+) -> list[Situation]:
+    return [
+        Situation.from_generation_model(_)
+        for _ in generation.generate_chunk_iterations(data)
+    ]

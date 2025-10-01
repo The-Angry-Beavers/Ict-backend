@@ -30,6 +30,7 @@ from server.apps.game.services.dto import (
     ProductReview,
     Product,
     AnswerStatusEnum,
+    GenerateChunkSituation,
 )
 
 TOTAL_POINTS: Final[int] = 10
@@ -364,7 +365,7 @@ def _fetch_generation(generation_params: GenerateSituationParams) -> GenerationM
             "client_first_name",
             "client_last_name",
             "hint",
-            "hint__product"
+            "hint__product",
         )
         .prefetch_related(
             Prefetch(
@@ -547,3 +548,21 @@ def acknowledge_day_finish(data: AcknowledgeDayFinish) -> AcknowledgeDayFinishRe
         )
 
     return AcknowledgeDayFinishResponse(reviews=reviews)
+
+
+def generate_chunk_iterations(
+    generation_data: GenerateChunkSituation,
+) -> list[GenerationModel]:
+
+    generations = []
+    for iteration in range(generation_data.total_iterations):
+        generations.append(
+            generate_situation(
+                GenerateSituationParams(
+                    seed=generation_data.seed,
+                    num_iterations=iteration,
+                )
+            )
+        )
+
+    return generations

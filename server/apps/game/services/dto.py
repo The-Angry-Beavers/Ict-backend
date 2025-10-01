@@ -65,6 +65,7 @@ class SituationHint(BaseModel):
     product: Product
     text: str
 
+
 class Situation(BaseModel):
     generation_params: GenerateSituationParams = Field(
         description="Используемые параметры генерации"
@@ -140,3 +141,6 @@ class AcknowledgeDayFinishResponse(BaseModel):
         return sum([rev.rating for rev in self.reviews])
 
 
+class GenerateChunkSituation(BaseModel):
+    seed: UUID
+    total_iterations: int
