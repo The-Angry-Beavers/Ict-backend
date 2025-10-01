@@ -364,6 +364,7 @@ def _fetch_generation(generation_params: GenerateSituationParams) -> GenerationM
             "client_first_name",
             "client_last_name",
             "hint",
+            "hint__product"
         )
         .prefetch_related(
             Prefetch(

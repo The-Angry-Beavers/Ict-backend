@@ -61,6 +61,10 @@ class SituationAnswer(BaseModel):
     is_correct: bool
 
 
+class SituationHint(BaseModel):
+    product: Product
+    text: str
+
 class Situation(BaseModel):
     generation_params: GenerateSituationParams = Field(
         description="Используемые параметры генерации"
@@ -69,6 +73,8 @@ class Situation(BaseModel):
     answers: list[SituationAnswer] = Field(
         description="Варианты продуктов к рекоммендации"
     )
+
+    hint: SituationHint
 
     @classmethod
     def from_generation_model(cls, generation: "GenerationModel") -> Self:
@@ -82,6 +88,7 @@ class Situation(BaseModel):
                 SituationAnswer.model_validate(ans, from_attributes=True)
                 for ans in generation.answers.all()
             ],
+            "hint": generation.hint
         }
 
         return cls.model_validate(data)
@@ -133,6 +140,3 @@ class AcknowledgeDayFinishResponse(BaseModel):
         return sum([rev.rating for rev in self.reviews])
 
 
-class SituationHint(BaseModel):
-    product: Product
-    text: str
