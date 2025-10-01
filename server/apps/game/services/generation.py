@@ -487,6 +487,7 @@ def check_answers(
                         ans.product, from_attributes=True
                     ),
                     "review": chosen_review,
+                    "answer_status": AnswerStatusEnum.CORRECT_BUT_NOT_SELECTED,
                 }
             )
         )
