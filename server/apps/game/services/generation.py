@@ -436,7 +436,8 @@ def check_answers(
 
     points_for_correct_answers = len(correct_answers) * points_per_answer
     points_for_incorrect_answers = len(incorrect_answers) * INCORRECT_ANSWER_FINE
-    total_points = abs(points_for_correct_answers - points_for_incorrect_answers)
+    total_points = points_for_correct_answers - points_for_incorrect_answers
+    total_points = 0 if total_points < 0 else total_points
 
     success_reviews = ReviewModel.objects.filter(product__isnull=True).values_list(
         "text", flat=True
