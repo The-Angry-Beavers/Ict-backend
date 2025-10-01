@@ -88,7 +88,7 @@ class Situation(BaseModel):
                 SituationAnswer.model_validate(ans, from_attributes=True)
                 for ans in generation.answers.all()
             ],
-            "hint": generation.hint
+            "hint": SituationHint.model_validate(generation.hint, from_attributes=True),
         }
 
         return cls.model_validate(data)
