@@ -191,7 +191,7 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
-CSRF_TRUSTED_ORIGINS = ["https://*.ngrok-free.app"]
+CSRF_TRUSTED_ORIGINS = ["https://*.ngrok-free.app", "https://*.apigw.yandexcloud.net"]
 
 X_FRAME_OPTIONS = "DENY"
 
