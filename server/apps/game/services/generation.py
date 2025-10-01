@@ -503,12 +503,23 @@ def check_answers(
 
 def acknowledge_day_finish(data: AcknowledgeDayFinish) -> AcknowledgeDayFinishResponse:
 
-    generation_qs = GenerationModel.objects.prefetch_related(
-        Prefetch(
-            "answers",
-            GenerationAnswerModel.objects.select_related("product"),
+    generation_qs = (
+        GenerationModel.objects.select_related(
+            "situation",
+            "client_age",
+            "client_job",
+            "client_city",
+            "client_sprite",
+            "hint",
         )
-    ).filter(seed=data.seed)
+        .prefetch_related(
+            Prefetch(
+                "answers",
+                GenerationAnswerModel.objects.select_related("product"),
+            )
+        )
+        .filter(seed=data.seed)
+    )
     generation_by_iteration = {gen.iteration: gen for gen in generation_qs}
     reviews = []
     for ans in data.answers:
