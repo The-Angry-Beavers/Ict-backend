@@ -454,9 +454,9 @@ def check_answers(
     answered_products = list(ProductModel.objects.filter(id__in=answered_product_ids))
     for answered_product in answered_products:
         random_instance = random.Random(generation.review + answered_product.id)
-
-        chosen_review = random_instance.choice(incorrect_reviews[answered_product.id])
-        ans_status = AnswerStatusEnum.INCORRECT_BUT_SELECTED
+        if answered_product.id in correct_product_ids:
+            chosen_review = random_instance.choice(incorrect_reviews[answered_product.id])
+            ans_status = AnswerStatusEnum.INCORRECT_BUT_SELECTED
 
         if answered_product.id in correct_product_ids:
             chosen_review = random_instance.choice(success_reviews)
