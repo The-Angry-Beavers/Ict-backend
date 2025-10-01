@@ -125,7 +125,7 @@ class ClientGeneration:
 def _get_client(situation: SituationModel, generation: Generation) -> ClientGeneration:
     selected_gender = GENDERS[_get_index_from_random_val(generation.gender, 2)]
     selected_age_group = get_random_value_from_qs(
-        AgeGroupModel.objects.all(), generation.age
+        situation.allowed_age_groups.all(), generation.age
     )
     selected_city = get_random_value_from_qs(CityModel.objects.all(), generation.city)
     selected_job = get_random_value_from_qs(
@@ -304,7 +304,8 @@ def _generate_situation(
                 "job_sphere_condition",
                 "city_condition",
             ),
-        )
+        ),
+        "allowed_age_groups",
     )[situation_index]
 
     generated_client = _get_client(

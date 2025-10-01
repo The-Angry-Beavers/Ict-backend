@@ -134,6 +134,7 @@ class SituationModel(models.Model):
         choices=BOOL_CONDITION_CHOICES,
         blank=True,
     )
+    allowed_age_groups = models.ManyToManyField(AgeGroupModel)
 
 
 @final
