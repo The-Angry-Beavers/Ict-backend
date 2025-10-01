@@ -2,7 +2,7 @@ import dataclasses
 import itertools
 import random
 from collections import defaultdict
-from typing import Final, Self, TypeVar
+from typing import Final, Self, TypeVar, Iterable
 
 from django.db.models import Prefetch, QuerySet, Model
 
@@ -29,6 +29,7 @@ from server.apps.game.services.dto import (
     Client,
     ProductReview,
     Product,
+    AnswerStatusEnum,
 )
 
 TOTAL_POINTS: Final[int] = 10
@@ -392,7 +393,7 @@ IncorrectReviews = list[str]
 
 
 def _get_reviews_for_products_ids(
-    products_ids: list[int],
+    products_ids: Iterable[int],
 ) -> tuple[dict[int, LostReviews], dict[int, IncorrectReviews]]:
     res_lost: defaultdict[int, LostReviews] = defaultdict(list)
     res_incorrect: defaultdict[int, IncorrectReviews] = defaultdict(list)
@@ -439,7 +440,7 @@ def check_answers(
         "text", flat=True
     )
     lost_reviews, incorrect_reviews = _get_reviews_for_products_ids(
-        [ans.product_id for ans in generated_answers]
+        incorrect_answers | lost_correct_answers
     )
 
     generation = get_generation(
@@ -450,44 +451,45 @@ def check_answers(
     )
 
     reviews = []
-    for ans in generation_instance.answers.all():
-        random_instance = random.Random(generation.review)
-        chosen_review = random_instance.choice(success_reviews)
+    answered_products = list(ProductModel.objects.filter(id__in=answered_product_ids))
+    for answered_product in answered_products:
+        random_instance = random.Random(generation.review + answered_product.id)
 
-        if ans.product_id in lost_correct_answers:
-            chosen_review = random_instance.choice(lost_reviews[ans.product_id])
+        chosen_review = random_instance.choice(incorrect_reviews[answered_product.id])
+        ans_status = AnswerStatusEnum.INCORRECT_BUT_SELECTED
 
-        if ans.product_id in incorrect_answers:
-            chosen_review = random_instance.choice(incorrect_reviews[ans.product_id])
+        if answered_product.id in correct_product_ids:
+            chosen_review = random_instance.choice(success_reviews)
+            ans_status = AnswerStatusEnum.FULL_CORRECT
 
         reviews.append(
             ProductReview.model_validate(
                 {
-                    "product": Product.model_validate(
-                        ans.product, from_attributes=True
+                    "answered_product": Product.model_validate(
+                        answered_product, from_attributes=True
                     ),
-                    "is_correct": ans.is_correct,
                     "review": chosen_review,
+                    "answer_status": ans_status,
                 }
             )
         )
 
-    # q_object = Q(product_id__in=correct_product_ids)
-    #
-    # # нет потерянных ответов и неправильных -> идеальный ответ
-    # if len(incorrect_answers) == 0 and len(lost_correct_answers) == 0:
-    #     q_object = Q(product__isnull=True)
-    #
-    # #  Есть какой-то продукт, который не нужен
-    # if len(incorrect_answers):
-    #     q_object |= Q(is_product_in_answer=True)
-    #
-    # # Есть какой-то потерянный правильный ответ
-    # if len(lost_correct_answers):
-    #     q_object |= Q(is_product_in_answer=False)
-    #
-    # review_qs = ReviewModel.objects.filter(q_object)
-    # review_instance = get_random_value_from_qs(review_qs, generation.review)
+    for ans in filter(
+        lambda ans: ans.product_id in lost_correct_answers, generated_answers
+    ):
+        random_instance = random.Random(generation.review + ans.product_id)
+        chosen_review = random_instance.choice(lost_reviews[ans.product_id])
+
+        reviews.append(
+            ProductReview.model_validate(
+                {
+                    "answered_product": Product.model_validate(
+                        ans.product, from_attributes=True
+                    ),
+                    "review": chosen_review,
+                }
+            )
+        )
 
     return Review(
         client=Client.from_generation(generation_instance),

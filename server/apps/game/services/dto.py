@@ -1,3 +1,4 @@
+import enum
 from typing import TYPE_CHECKING, Self
 from uuid import UUID
 
@@ -105,9 +106,15 @@ class AcknowledgeDayFinish(BaseModel):
     answers: list[AcknowledgeSituationAnswer]
 
 
+class AnswerStatusEnum(enum.StrEnum):
+    FULL_CORRECT = enum.auto()
+    CORRECT_BUT_NOT_SELECTED = enum.auto()
+    INCORRECT_BUT_SELECTED = enum.auto()
+
+
 class ProductReview(BaseModel):
-    product: Product
-    is_correct: bool
+    answered_product: Product
+    answer_status: AnswerStatusEnum
     review: str
 
 
