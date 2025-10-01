@@ -212,3 +212,19 @@ CORS_ALLOWED_ORIGINS = ["https://*"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = ["*"]
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": config("STORAGE_S3_BUCKET"),
+            "endpoint_url": config("STORAGE_S3_ENDPOINT"),
+            "access_key": config("STORAGE_S3_ACCESS_KEY"),
+            "secret_key": config("STORAGE_S3_SECRET_KEY"),
+            "querystring_expire": 60 * 5,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
