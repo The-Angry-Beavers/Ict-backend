@@ -140,10 +140,10 @@ def _get_client(situation: SituationModel, generation: Generation) -> ClientGene
         generation.sprite,
     )
     is_married = bool(_get_index_from_random_val(generation.is_married, 2))
-    is_have_child = bool(_get_index_from_random_val(generation.is_married, 2))
+    is_have_child = bool(_get_index_from_random_val(generation.is_have_child, 2))
     is_have_real_estate = situation.real_estate_condition
     if is_have_real_estate is None:
-        is_have_real_estate = bool(_get_index_from_random_val(generation.is_married, 2))
+        is_have_real_estate = bool(_get_index_from_random_val(generation.is_have_real_estate, 2))
 
     selected_first_name = get_random_value_from_qs(
         FirstNameModel.objects.filter(gender=selected_gender),
