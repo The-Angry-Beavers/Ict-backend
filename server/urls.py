@@ -16,6 +16,7 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 from health_check import urls as health_urls
 from ninja import NinjaAPI
+from django.conf.urls.static import static
 
 from server.apps.main import urls as main_urls
 from server.apps.main.views import index
@@ -59,7 +60,6 @@ urlpatterns = [
 
 if settings.DEBUG:  # pragma: no cover
     import debug_toolbar
-    from django.conf.urls.static import static
 
     urlpatterns = [
         # URLs specific only to django-debug-toolbar:
