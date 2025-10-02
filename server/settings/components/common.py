@@ -108,14 +108,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru"
 
 USE_I18N = True
 
-LANGUAGES = (
-    ("en", _("English")),
-    ("ru", _("Russian")),
-)
 
 LOCALE_PATHS = ("locale/",)
 
