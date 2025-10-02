@@ -53,9 +53,9 @@ urlpatterns = [
     # It is a good practice to have explicit index view:
     path("", index, name="index"),
     # django-ninja views
-    path("api/", ninja_api.urls)
+    path("api/", ninja_api.urls),
     # Always serve mediafiles for admin-site
-    * static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
+    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
 
 if settings.DEBUG:  # pragma: no cover
