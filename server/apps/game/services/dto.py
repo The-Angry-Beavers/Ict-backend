@@ -1,4 +1,5 @@
 import enum
+import random
 from typing import TYPE_CHECKING, Self
 from uuid import UUID
 
@@ -79,16 +80,18 @@ class Situation(BaseModel):
 
     @classmethod
     def from_generation_model(cls, generation: "GenerationModel") -> Self:
+        answers = [
+            SituationAnswer.model_validate(ans, from_attributes=True)
+            for ans in generation.answers.all()
+        ]
+        random.shuffle(answers)
         data = {
             "generation_params": GenerateSituationParams(
                 seed=generation.seed,
                 num_iterations=generation.iteration,
             ),
             "client": Client.from_generation(generation),
-            "answers": [
-                SituationAnswer.model_validate(ans, from_attributes=True)
-                for ans in generation.answers.all()
-            ],
+            "answers": answers,
             "hint": SituationHint.model_validate(generation.hint, from_attributes=True),
         }
 

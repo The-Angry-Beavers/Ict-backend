@@ -1,4 +1,5 @@
 from django.contrib import admin
+from nltk import Model
 
 from server.apps.game.models import (
     AgeGroupModel,
@@ -9,8 +10,25 @@ from server.apps.game.models import (
     ReviewModel,
     SituationModel,
     SpriteModel,
-    ProductRecommendationConditionModel, FirstNameModel, LastNameModel,
+    ProductRecommendationConditionModel,
+    FirstNameModel,
+    LastNameModel,
 )
+
+
+class ModelAdmin(admin.ModelAdmin):
+
+    def log_deletion(self, request, obj, object_repr):
+        pass
+
+    def log_addition(self, request, obj, message):
+        pass
+
+    def log_change(self, request, obj, message):
+        pass
+
+    def log_deletions(self, request, queryset):
+        pass
 
 
 class HintInline(admin.StackedInline):
@@ -29,33 +47,33 @@ class ProductRecommendationConditionInline(admin.StackedInline):
 
 
 @admin.register(ProductModel)
-class ProductModelAdmin(admin.ModelAdmin):
+class ProductModelAdmin(ModelAdmin):
     list_display = ["id", "name"]
     inlines = [HintInline, ReviewInline]
 
 
 @admin.register(JobSphereModel)
-class JobSphereModelAdmin(admin.ModelAdmin):
+class JobSphereModelAdmin(ModelAdmin):
     list_display = ["id", "name"]
 
 
 @admin.register(SpriteModel)
-class SpriteModelAdmin(admin.ModelAdmin):
+class SpriteModelAdmin(ModelAdmin):
     list_display = ["gender", "age_group"]
 
 
 @admin.register(AgeGroupModel)
-class AgeGroupModelAdmin(admin.ModelAdmin):
+class AgeGroupModelAdmin(ModelAdmin):
     list_display = ["id", "name"]
 
 
 @admin.register(CityModel)
-class CityModelAdmin(admin.ModelAdmin):
+class CityModelAdmin(ModelAdmin):
     list_display = ["id", "name"]
 
 
 @admin.register(ReviewModel)
-class ReviewModelAdmin(admin.ModelAdmin):
+class ReviewModelAdmin(ModelAdmin):
     list_display = [
         "id",
         "product",
@@ -68,12 +86,12 @@ class ReviewModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(HintModel)
-class HintModelAdmin(admin.ModelAdmin):
+class HintModelAdmin(ModelAdmin):
     pass
 
 
 @admin.register(SituationModel)
-class SituationModelAdmin(admin.ModelAdmin):
+class SituationModelAdmin(ModelAdmin):
     inlines = [ProductRecommendationConditionInline]
 
 
@@ -83,9 +101,10 @@ class SituationModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(FirstNameModel)
-class FirstNameModelAdmin(admin.ModelAdmin):
+class FirstNameModelAdmin(ModelAdmin):
     list_display = ["content"]
 
+
 @admin.register(LastNameModel)
-class LastNameModelAdmin(admin.ModelAdmin):
+class LastNameModelAdmin(ModelAdmin):
     list_display = ["content"]
